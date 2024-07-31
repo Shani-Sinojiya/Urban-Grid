@@ -1,0 +1,23 @@
+<!-- traffic/templates/traffic/signal_status.html -->
+{% extends 'base.html' %}
+
+{% block title %}Signal Status - Traffic Guardian{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Traffic Signal Status</h2>
+    <div class="row">
+        {% for signal in signals %}
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">Signal {{ signal.lane_id }}</div>
+                <div class="card-body">
+                    <h5 class="card-title">Current Status: {{ signal.status }}</h5>
+                    <p class="card-text">Vehicles Counted: {{ signal.vehicle_count }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Lane List - Traffic Guardian{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Lane List</h2>
+    {% if accident_alert %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div class="d-flex align-items-center">
+            <div>
+                <strong>{{ accident_alert }}</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% if accident_frame %}
+            <div class="ml-3">
+                <img src="{{ accident_frame }}" class="img-fluid" alt="Accident Frame" style="max-width: 200px;">
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">Lane ID</th>
+                <th scope="col">Current Signal</th>
+                <th scope="col">Vehicle Count</th>
+                <th scope="col">Timer Duration</th>
+            </tr>
+        </thead>
+        <tbody id="signals-table-body">
+            {% for signal in signals %}
+            <tr data-lane-id="{{ signal.lane_id }}">
+                <td>{{ signal.lane_id }}</td>
+                <td class="current-signal">{{ signal.traffic_signal }}</td>
+                <td>{{ signal.vehicle_count }}</td>
+                <td>
+                    <span class="timer" data-duration="{{ signal.timer_duration }}">{{ signal.timer_duration }} seconds</span>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">No lanes found</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+<!-- Countdown Timer Script --><!-- Countdown Timer Script -->
+<script>
+    function startCountdown(duration, element) {
+        let timer = duration;
+        // Clear any existing interval for this element
+        const existingInterval = element.dataset.interval;
+        if (existingInterval) {
+            clearInterval(parseInt(existingInterval, 10));
+        }
+        
+        // Start a new interval
+        const interval = setInterval(function () {
+            const minutes = Math.floor(timer / 60);
+            const seconds = timer % 60;
+            element.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            if (--timer < 0) {
+                clearInterval(interval);
+                // Optionally restart the timer if needed
+                // timer = duration;
+                // startCountdown(timer, element); 
+            }
+        }, 1000);
+
+        element.dataset.interval = interval; // Store interval ID for future reference
+    }
+
+    function updateTimers() {
+        document.querySelectorAll('.timer').forEach(function (element) {
+            const duration = parseInt(element.dataset.duration, 10);
+            startCountdown(duration, element);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        updateTimers(); // Initial timer setup
+    });
+</script>
+
+<!-- AJAX Script -->
+<script>
+    function fetchSignals() {
+        fetch('{% url "get_signals" %}')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const tableBody = document.getElementById('signals-table-body');
+                tableBody.innerHTML = ''; // Clear the table body
+                data.signals.forEach(signal => {
+                    const row = document.createElement('tr');
+                    row.setAttribute('data-lane-id', signal.lane_id);
+                    row.innerHTML = `
+                        <td>${signal.lane_id}</td>
+                        <td class="current-signal">${signal.traffic_signal}</td>
+                        <td>${signal.vehicle_count}</td>
+                        <td>
+                            <span class="timer" data-duration="${signal.timer_duration}">${signal.timer_duration} seconds</span>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // Update countdown timers
+                updateTimers();
+            })
+            .catch(error => console.error('Error fetching signals:', error));
+    }
+
+    // Fetch data periodically
+    document.addEventListener('DOMContentLoaded', function () {
+        fetchSignals(); // Initial fetch
+        setInterval(fetchSignals, 10000); // Fetch every 10 seconds
+    });
+</script>

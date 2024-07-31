@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Traffic Dashboard</title>
+    <style>
+        .signal {
+            margin-bottom: 20px;
+        }
+        .alert {
+            border: 2px solid red;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .alert img {
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Traffic Dashboard</h1>
+
+    <h2>Traffic Signals</h2>
+    {% for signal in signals %}
+    <div class="signal">
+        <h3>{{ signal.lane_id }}</h3>
+        <p>Vehicle Count: {{ signal.vehicle_count }}</p>
+        <p>Current Signal: {{ signal.traffic_signal }}</p>
+        <p>Timer: {{ signal.green_signal_end_time|date:"H:i:s" }}</p>
+    </div>
+    {% endfor %}
+
+    <h2>Accident Alerts</h2>
+    {% for alert in alerts %}
+    <div class="alert">
+        <p>Timestamp: {{ alert.timestamp }}</p>
+        <p>Location: {{ alert.location }}</p>
+        <img src="{{ alert.image.url }}" alt="Accident Image">
+    </div>
+    {% endfor %}
+</body>
+</html>
